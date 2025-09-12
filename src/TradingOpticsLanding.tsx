@@ -28,7 +28,7 @@ function Navbar() {
 }
 
 /** LIVE TradingView Advanced Chart (1-minute) */
-function TVChartLive({ height = 360 }: { height?: number }) {
+function TVChartLive({ height = 300 }: { height?: number }) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
