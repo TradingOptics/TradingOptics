@@ -23,15 +23,10 @@ export default function App() {
           </a>
         </nav>
 
-        <a
-          href="https://calendly.com/tradingoptics"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button className="bg-gradient-to-r from-green-500 to-yellow-500 text-black font-bold px-6 py-3 rounded-full">
-            Book a Session
-          </Button>
-        </a>
+        <!-- Calendly inline widget begin -->
+<div class="calendly-inline-widget" data-url="https://calendly.com/tradingoptics?hide_landing_page_details=1" style="min-width:320px;height:700px;"></div>
+<script type="text/javascript" src="https://assets.calendly.com/assets/external/widget.js" async></script>
+<!-- Calendly inline widget end -->
       </header>
 
       {/* Hero Section */}
