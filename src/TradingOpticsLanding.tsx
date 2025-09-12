@@ -19,61 +19,67 @@ function Navbar() {
   );
 }
 
-/** LIVE TradingView Advanced Chart embed */
-function TVChartLive({ height = 420 }: { height?: number }) {
-  const widgetRef = React.useRef<HTMLDivElement | null>(null);
+/** LIVE TradingView Advanced Chart (1-minute) */
+function TVChartLive({ height = 520 }: { height?: number }) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
-    if (!widgetRef.current) return;
+    if (!containerRef.current) return;
 
-    // Reset any previous render
-    widgetRef.current.innerHTML = "";
+    // Clear previous mount (prevents duplicate widgets)
+    containerRef.current.innerHTML = "";
 
-    // TradingView advanced chart
-    const s = document.createElement("script");
-    s.src =
+    // TradingView script
+    const script = document.createElement("script");
+    script.src =
       "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    s.type = "text/javascript";
-    s.async = true;
+    script.type = "text/javascript";
+    script.async = true;
 
-    s.innerHTML = JSON.stringify({
+    // 1-minute candles, live feel. Change symbol if you want BINANCE instead.
+    script.innerHTML = JSON.stringify({
       autosize: true,
-      symbol: "BINANCE:BTCUSDT", // change this if you want another market
-      interval: "60",            // "1","5","15","60","240","D","W","M"
+      symbol: "COINBASE:BTCUSD", // or "BINANCE:BTCUSDT"
+      interval: "1",
       timezone: "Etc/UTC",
       theme: "dark",
       style: "1",
       locale: "en",
       hide_top_toolbar: false,
       hide_legend: true,
-      allow_symbol_change: false,
       withdateranges: true,
+      allow_symbol_change: true,
       calendar: false,
-      studies: ["MASimple@tv-basicstudies"], // optional
+      studies: [],
+      support_host: "https://www.tradingview.com",
     });
 
-    widgetRef.current.appendChild(s);
+    // host nodes
+    const widgetHost = document.createElement("div");
+    widgetHost.className = "tradingview-widget-container__widget";
+    widgetHost.style.width = "100%";
+    widgetHost.style.height = `${height}px`;
+
+    const outer = document.createElement("div");
+    outer.className = "tradingview-widget-container";
+    outer.style.width = "100%";
+    outer.appendChild(widgetHost);
+    outer.appendChild(script);
+
+    containerRef.current.appendChild(outer);
 
     return () => {
-      if (widgetRef.current) widgetRef.current.innerHTML = "";
+      if (containerRef.current) containerRef.current.innerHTML = "";
     };
-  }, []);
+  }, [height]);
 
   return (
     <div className="chart-card">
       <div className="chart-head">
-        <span className="muted">Live Chart • BTC/USDT</span>
-        <span className="badge">BEGINNER-FRIENDLY</span>
+        <span className="muted">Live Chart • BTC/USD (1m)</span>
+        <span className="badge">REAL-TIME</span>
       </div>
-
-      <div className="tradingview-widget-container" style={{ width: "100%" }}>
-        <div
-          className="tradingview-widget-container__widget"
-          ref={widgetRef}
-          style={{ width: "100%", height }}
-        />
-      </div>
-
+      <div ref={containerRef} style={{ width: "100%", minHeight: height }} />
       <p className="muted mt-12">
         We’ll practice directly on TradingView: drawing tools, indicators,
         entries/exits, and risk management.
