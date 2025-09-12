@@ -13,7 +13,16 @@ function Navbar() {
         <a href="#syllabus">Syllabus</a>
         <a href="#pricing">Pricing</a>
         <a href="#contact">Contact</a>
-        <button className="btn-primary">Book a Session</button>
+        <a
+  href="https://calendly.com/tradingoptics" 
+  target="_blank" 
+  rel="noopener noreferrer"
+>
+  <Button className="bg-gradient-to-r from-green-500 to-yellow-500 text-black font-bold px-6 py-3 rounded-full">
+    Book a Session
+  </Button>
+</a>
+
       </div>
     </nav>
   );
