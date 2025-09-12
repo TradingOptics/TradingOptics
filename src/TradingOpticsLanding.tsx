@@ -1,6 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+declare global {
+  interface Window {
+    TradingView?: any;
+  }
+}
+
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
 
@@ -45,6 +51,92 @@ function Header() {
   );
 }
 
+/** Live TradingView widget with graceful fallback */
+function TVChartLive({ height = 280 }: { height?: number }) {
+  const idRef = React.useRef("tv_" + Math.random().toString(36).slice(2));
+  const [ready, setReady] = React.useState(false);
+
+  React.useEffect(() => {
+    // TradingView script is loaded globally in index.html
+    if (!window.TradingView) return;
+    try {
+      setReady(true);
+      // @ts-ignore - TradingView types not installed
+      new window.TradingView.widget({
+        container_id: idRef.current,
+        autosize: true,
+        symbol: "BINANCE:BTCUSDT",
+        interval: "60",
+        timezone: "Etc/UTC",
+        theme: "dark",
+        style: "1", // candles
+        locale: "en",
+        toolbar_bg: "#0b0b0b",
+        hide_legend: true,
+        withdateranges: true,
+        allow_symbol_change: true,
+        studies: ["MASimple@tv-basicstudies"],
+        hide_side_toolbar: false,
+        details: false,
+        calendar: false,
+        // IMPORTANT: render as a widget inside our hero card only
+        container: idRef.current
+      });
+    } catch {
+      // If TradingView fails, we just stay with fallback
+    }
+  }, []);
+
+  if (!ready) {
+    // Fallback (same styled card you had, so the UI never looks empty)
+    return (
+      <div className="chart-card">
+        <div className="chart-head">
+          <span className="muted">Live Chart • BTC/USDT</span>
+          <Badge>BEGINNER-FRIENDLY</Badge>
+        </div>
+        <div className="chart-area">
+          <div className="tag tag-green" style={{ left: 28, bottom: 54 }}>MA Cross ↑</div>
+          <div className="tag tag-gold" style={{ right: 28, top: 26 }}>Breakout Zone</div>
+          <svg viewBox="0 0 600 260" className="svg-chart" aria-hidden>
+            <defs>
+              <linearGradient id="gg" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#10B981" />
+                <stop offset="100%" stopColor="#FACC15" />
+              </linearGradient>
+            </defs>
+            <g opacity="0.15">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <line key={"h"+i} x1="0" y1={i*26} x2="600" y2={i*26} stroke="white" strokeWidth="1"/>
+              ))}
+            </g>
+            {Array.from({ length: 30 }).map((_, i) => {
+              const x = 15 + i * 19;
+              const h = 40 + Math.floor(100 * Math.abs(Math.sin(i*0.45)));
+              const y = 200 - h;
+              const up = i % 3 !== 0;
+              return (<rect key={i} x={x} y={y} width="10" height={h} rx="2" fill={up ? "#10B981" : "#E11D48"} />);
+            })}
+            <path d="M0,180 C120,120 240,220 360,150 480,120 540,140 600,110" fill="none" stroke="url(#gg)" strokeWidth="3"/>
+          </svg>
+        </div>
+        <p className="muted mt-12">We’ll practice directly on TradingView: drawing tools, indicators, entries/exits, and risk management.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="chart-card">
+      <div className="chart-head">
+        <span className="muted">Live Chart • BTC/USDT</span>
+        <Badge>BEGINNER-FRIENDLY</Badge>
+      </div>
+      <div id={idRef.current} style={{ height, width: "100%", borderRadius: 12, overflow: "hidden" }} />
+      <p className="muted mt-12">We’ll practice directly on TradingView: drawing tools, indicators, entries/exits, and risk management.</p>
+    </div>
+  );
+}
+
 function Hero() {
   return (
     <section id="top" className="hero wrap">
@@ -67,50 +159,8 @@ function Hero() {
         </motion.div>
 
         <motion.div variants={item}>
-          <div className="chart-card">
-            <div className="chart-head">
-              <span className="muted">Live Chart • BTC/USDT</span>
-              <Badge>BEGINNER-FRIENDLY</Badge>
-            </div>
-
-            {/* Step 1: aesthetic placeholder chart that always renders */}
-            <div className="chart-area">
-              <div className="tag tag-green" style={{ left: 28, bottom: 54 }}>MA Cross ↑</div>
-              <div className="tag tag-gold" style={{ right: 28, top: 26 }}>Breakout Zone</div>
-
-              {/* Candle rows (simple svg for “chart-like” feel) */}
-              <svg viewBox="0 0 600 260" className="svg-chart" aria-hidden>
-                <defs>
-                  <linearGradient id="gg" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#10B981" />
-                    <stop offset="100%" stopColor="#FACC15" />
-                  </linearGradient>
-                </defs>
-                <!-- grid -->
-                <g opacity="0.15">
-                  {Array.from({ length: 10 }).map((_, i) => (
-                    <line key={"h"+i} x1="0" y1={i*26} x2="600" y2={i*26} stroke="white" strokeWidth="1"/>
-                  ))}
-                </g>
-                <!-- candles (stylized) -->
-                {Array.from({ length: 30 }).map((_, i) => {
-                  const x = 15 + i * 19;
-                  const h = 40 + Math.floor(100 * Math.abs(Math.sin(i*0.45)));
-                  const y = 200 - h;
-                  const up = i % 3 !== 0;
-                  return (
-                    <rect key={i} x={x} y={y} width="10" height={h} rx="2" fill={up ? "#10B981" : "#E11D48"} />
-                  );
-                })}
-                <!-- moving average -->
-                <path d="M0,180 C120,120 240,220 360,150 480,120 540,140 600,110" fill="none" stroke="url(#gg)" strokeWidth="3"/>
-              </svg>
-            </div>
-
-            <p className="muted mt-12">
-              We’ll practice directly on TradingView: drawing tools, indicators, entries/exits, and risk management.
-            </p>
-          </div>
+          {/* Live TV chart with automatic fallback */}
+          <TVChartLive height={280} />
         </motion.div>
       </motion.div>
     </section>
