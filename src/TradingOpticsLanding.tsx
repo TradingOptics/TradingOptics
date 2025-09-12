@@ -13,38 +13,76 @@ function Navbar() {
         <a href="#syllabus">Syllabus</a>
         <a href="#pricing">Pricing</a>
         <a href="#contact">Contact</a>
+        {/* Calendly button (no external Button component) */}
         <a
-  href="https://calendly.com/tradingoptics" 
-  target="_blank" 
-  rel="noopener noreferrer"
->
-  <Button className="bg-gradient-to-r from-green-500 to-yellow-500 text-black font-bold px-6 py-3 rounded-full">
-    Book a Session
-  </Button>
-</a>
-
+          href="https://calendly.com/tradingoptics"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary"
+        >
+          Book a Session
+        </a>
       </div>
     </nav>
   );
 }
 
-function TVChartIframe({ height = 520 }: { height?: number }) {
-  const src =
-    "https://s.tradingview.com/widgetembed/?frameElementId=tv_iframe&symbol=COINBASE%3ABTCUSD&interval=1&hidesidetoolbar=0&symboledit=1&hidetoptoolbar=0&saveimage=1&theme=dark&style=1&timezone=Etc%2FUTC&studies=&hideideas=1&withdateranges=1&support_host=https%3A%2F%2Fwww.tradingview.com";
+/** LIVE TradingView Advanced Chart (1-minute) */
+function TVChartLive({ height = 520 }: { height?: number }) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+    containerRef.current.innerHTML = "";
+
+    const script = document.createElement("script");
+    script.src =
+      "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.type = "text/javascript";
+    script.async = true;
+
+    script.innerHTML = JSON.stringify({
+      autosize: true,
+      symbol: "COINBASE:BTCUSD", // change to "BINANCE:BTCUSDT" if you prefer
+      interval: "1",
+      timezone: "Etc/UTC",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      hide_top_toolbar: false,
+      hide_legend: true,
+      withdateranges: true,
+      allow_symbol_change: true,
+      calendar: false,
+      studies: [],
+      support_host: "https://www.tradingview.com"
+    });
+
+    const widgetHost = document.createElement("div");
+    widgetHost.className = "tradingview-widget-container__widget";
+    widgetHost.style.width = "100%";
+    widgetHost.style.height = `${height}px`;
+
+    const outer = document.createElement("div");
+    outer.className = "tradingview-widget-container";
+    outer.style.width = "100%";
+    outer.appendChild(widgetHost);
+    outer.appendChild(script);
+
+    containerRef.current.appendChild(outer);
+
+    return () => {
+      if (containerRef.current) containerRef.current.innerHTML = "";
+    };
+  }, [height]);
+
   return (
     <div className="chart-card">
       <div className="chart-head">
         <span className="muted">Live Chart • BTC/USD (1m)</span>
         <span className="badge">REAL-TIME</span>
       </div>
-      <iframe
-        title="TradingView Live BTC"
-        src={src}
-        style={{ width: "100%", height, border: 0 }}
-        allowTransparency
-        scrolling="no"
-        loading="eager"
-      />
+      <div ref={containerRef} style={{ width: "100%", minHeight: height }} />
       <p className="muted mt-12">
         We’ll practice directly on TradingView: drawing tools, indicators,
         entries/exits, and risk management.
@@ -52,7 +90,6 @@ function TVChartIframe({ height = 520 }: { height?: number }) {
     </div>
   );
 }
-
 
 /** Hero section */
 function Hero() {
@@ -68,9 +105,19 @@ function Hero() {
           access. Practical lessons, live chart walk-throughs, and a repeatable
           plan so you stop guessing and start executing.
         </p>
+        {/* Hero CTA to Calendly */}
+        <a
+          href="https://calendly.com/tradingoptics"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary"
+          style={{ marginTop: 16, display: "inline-flex" }}
+        >
+          Book a Session
+        </a>
       </div>
       <div className="hero-chart">
-        <TVChartIframe />
+        <TVChartLive />
       </div>
     </section>
   );
